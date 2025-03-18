@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Book Management</h1>
+
+<button onclick="fetchBooks()">See Books</button>
+<button onclick="showAddBookForm()">Add Book</button>
+
+<div id="bookForm" style="display:none;">
+    <h2 id="formTitle">Add Book</h2>
+    <input type="hidden" id="bookId">
+    <input type="text" id="title" placeholder="Title" required>
+    <input type="text" id="author" placeholder="Author" required>
+    <input type="number" id="published_year" placeholder="Published Year" required>
+    <button onclick="addOrUpdateBook()">Submit</button>
+    <button onclick="hideBookForm()">Cancel</button>
+</div>
+
+<h2>Books List</h2>
+<table id="booksTable">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Title</th>
+            <th>Author</th>
+            <th>Published Year</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody id="booksBody">
+        <!-- Books will be populated here -->
+    </tbody>
+</table>
+
+<script>
+    async function fetchBooks() {
+        const response = await fetch('http://localhost:3000/books');
+        const books = await response.json();
+        const booksBody = document.getElementById('booksBody');
+        booksBody.innerHTML = '';
+
+        books.forEach(book => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${book.id}</td>
+                <td>${book.title}</td>
+                <td>${book.author}</td>
+                <td>${book.published_year}</td>
+                <td>
+                    <button onclick="showUpdateBookForm(${book.id}, '${book.title}', '${book.author}', ${book.published_year})">Update</button>
+                    <button onclick="deleteBook(${book.id})">Delete</button>
+                </td>
+            `;
+            booksBody.appendChild(row);
+        });
+    }
+
+    function showAddBookForm() {
+        document.getElementById('formTitle').innerText = 'Add Book';
+        document.getElementById('bookId').value = '';
+        document.getElementById('title').value = '';
+        document.getElementById('author').value = '';
+        document.getElementById('published_year').value = '';
+        document.getElementById('bookForm').style.display = 'block';
+    }
+
+    function showUpdateBookForm(id, title, author, published_year) {
+        document.getElementById('formTitle').innerText = 'Update Book';
+        document.getElementById('bookId').value = id;
+        document.getElementById('title').value = title;
+        document.getElementById('author').value = author;
+        document.getElementById('published_year').value = published_year;
+        document.getElementById('bookForm').style.display = 'block';
+    }
+
+    function hideBookForm() {
+        document.getElementById('bookForm').style.display = 'none';
+    }
+
+    async function addOrUpdateBook() {
+        const id = document.getElementById('bookId').value;
+        const title = document.getElementById('title').value;
+        const author = document.getElementById('author').value;
+        const published_year = document.getElementById('published_year').value;
+
+        if (id) {
+            // Update book
+            await fetch(`http://localhost:3000/books/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ title, author, published_year })
+            });
+        } else {
+            // Add book
+            await fetch('http://localhost:3000/books', {
+                method: 'POST',
+                headers: {
+                    'Content-Type' : 'application/json'
+                },
+                body: JSON.stringify({ title, author, published_year })
+            });
+        }
+        hideBookForm();
+        fetchBooks();
+    }
+
+    async function deleteBook(id) {
+        await fetch(`http://localhost:3000/books/${id}`, {
+            method: 'DELETE'
+        });
+        fetchBooks();
+    }
+</script>
+
+</body>
+</html>
