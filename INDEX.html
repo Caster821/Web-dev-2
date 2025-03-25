@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #e0f7fa; /* Light cerulean background */
+            color: #004d40; /* Darker cerulean text */
+        }
+        h1 {
+            text-align: center;
+            color: #00796b; /* Cerulean color for headings */
+        }
+        section {
+            background-color: #ffffff; /* White background for sections */
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin: 20px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        input {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #00796b; /* Cerulean border */
+            border-radius: 4px;
+            width: 80%;
+            max-width: 300px;
+        }
+        button {
+            background-color: #00796b; /* Cerulean button */
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #004d40; /* Darker cerulean on hover */
+        }
+        #userList {
+            margin-top: 20px;
+            text-align: left;
+            width: 80%;
+            max-width: 400px;
+        }
+        p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>User Management</h1>
+
+    <section id="getUsers">
+        <h2>Get Users</h2>
+        <button onclick="fetchUsers()">Fetch Users</button>
+        <div id="userList"></div>
+    </section>
+
+    <section id="createUser ">
+        <h2>Create User</h2>
+        <input type="text" id="newUser Name" placeholder="Name" required>
+        <input type="email" id="newUser Email" placeholder="Email" required>
+        <button onclick="createUser ()">Create User</button>
+    </section>
+
+    <section id="updateUser ">
+        <h2>Update User</h2>
+        <input type="number" id="updateUser Id" placeholder="User  ID" required>
+        <input type="text" id="updateUser Name" placeholder="New Name">
+        <input type="email" id="updateUser Email" placeholder="New Email">
+        <button onclick="updateUser ()">Update User</button>
+    </section>
+
+    <section id="deleteUser ">
+        <h2>Delete User</h2>
+        <input type="number" id="deleteUser Id" placeholder="User  ID" required>
+        <button onclick="deleteUser ()">Delete User</button>
+    </section>
+
+    <script>
+        const apiUrl = 'http://localhost:3000/api/users';
+
+        async function fetchUsers() {
+            const response = await fetch(apiUrl);
+            const users = await response.json();
+            const userList = document.getElementById('userList');
+            userList.innerHTML = '<h3>User List:</h3>' + users.map(user => `<p>${user.id}: ${user.name} (${user.email})</p>`).join('');
+        }
+
+        async function createUser () {
+            const name = document.getElementById('newUser Name').value;
+            const email = document.getElementById('newUser Email').value;
+
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name, email })
+            });
+
+            const newUser  = await response.json();
+            alert(`User  created: ${newUser .name}`);
+            fetchUsers(); // Refresh the user list
+        }
+
+        async function updateUser () {
+            const id = document.getElementById('updateUser Id').value;
+            const name = document.getElementById('updateUser Name').value;
+            const email = document.getElementById('updateUser Email').value;
+
+            const response = await fetch(`${apiUrl}/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name, email })
+            });
+
+            if (response.ok) {
+                const updatedUser  = await response.json();
+                alert(`User  updated: ${updatedUser .name}`);
+                fetchUsers(); // Refresh the user list
+            } else {
+                alert('User  not found');
+            }
+        }
+
+        async function deleteUser () {
+            const id = document.getElementById('deleteUser Id').value;
+
+            const response = await fetch(`${apiUrl}/${id}`, {
+                method: 'DELETE'
+            });
+
+            if (response.ok) {
+                alert('User  deleted');
+                fetchUsers(); // Refresh the user list
+            } else {
+                alert('User  not found');
+            }
+        }
+    </script>
+
+</body>
+</html>
